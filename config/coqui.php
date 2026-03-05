@@ -9,6 +9,7 @@ return [
         'de' => 'German',
         'bg' => 'Bulgarian',
         'it' => 'Italian',
+        'ru' => 'Russian',
         'multi' => 'Multi-language',
     ],
 
@@ -82,7 +83,7 @@ return [
             'id' => 'tts_models/multilingual/multi-dataset/xtts_v2',
             'name' => 'XTTS v2',
             'supports_cloning' => true,
-            'supported_languages' => ['en', 'es', 'fr', 'de', 'it', 'multi'],
+            'supported_languages' => ['en', 'es', 'fr', 'de', 'it', 'ru', 'multi'],
         ],
         [
             'id' => 'tts_models/multilingual/multi-dataset/xtts_v1.1',
@@ -101,7 +102,7 @@ return [
     'upload_file' => [
         'validations' => [
             'max_size_kb' => 20480,        // 20 MB
-            'max_duration_seconds' => 30,
+            'max_duration_seconds' => 38,
             'supported_formats' => ['.wav'],
             'max_files' => 5,
         ],
@@ -109,11 +110,17 @@ return [
 
     'runpod' => [
         'api_key' => env('RUNPOD_API_KEY', ''),
-        'tts_endpoint_id' => env('RUNPOD_TTS_ENDPOINT_ID', ''),
-        'vc_endpoint_id' => env('RUNPOD_VC_ENDPOINT_ID', ''),
+        'tts_endpoint_id' => env('RUNPOD_TTS_ENDPOINT_ID', 'nbzsxv4jty3zz2'),
+        'vc_endpoint_id' => env('RUNPOD_VC_ENDPOINT_ID', 'nbzsxv4jty3zz2'),
         'webhook_url' => env('RUNPOD_WEBHOOK_URL', null), // null = use polling fallback
         'tts_timeout_seconds' => env('RUNPOD_TTS_TIMEOUT', 180),
         'vc_timeout_seconds' => env('RUNPOD_VC_TIMEOUT', 600),
+    ],
+
+    'local_worker' => [
+        'enabled' => env('LOCAL_TTS_WORKER_ENABLED', false),
+        'url' => env('LOCAL_TTS_WORKER_URL', 'http://localhost:8001'),
+        'api_key' => env('LOCAL_TTS_WORKER_API_KEY', ''),
     ],
 
 ];
