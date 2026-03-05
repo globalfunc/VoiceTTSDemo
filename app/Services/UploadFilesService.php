@@ -61,11 +61,10 @@ class UploadFilesService
         $outputPath = $tmpDir.'/'.Str::uuid().'.wav';
 
         $audio = $this->ffmpeg->open($file->getRealPath());
-        $audio
-            ->filters()
-            ->custom('-ac 1 -ar 22050 -acodec pcm_s16le');
+        $audio->filters()->resample(22050);
 
         $format = new \FFMpeg\Format\Audio\Wav();
+        $format->setAudioChannels(1);
         $audio->save($format, $outputPath);
 
         return $outputPath;
