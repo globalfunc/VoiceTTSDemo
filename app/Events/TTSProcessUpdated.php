@@ -7,15 +7,21 @@ use App\Models\TTSProcess;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-class TTSProcessUpdated implements ShouldBroadcast
+class TTSProcessUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(public readonly TTSProcess $process) {}
+
+    public function broadcastAs(): string
+    {
+        return 'TTSProcessUpdated';
+    }
 
     public function broadcastOn(): array
     {
@@ -25,14 +31,29 @@ class TTSProcessUpdated implements ShouldBroadcast
     public function broadcastWith(): array
     {
         $outputFile = $this->process->storedFiles()->where('type', 'output')->first();
+        $jsonResponse = $this->process->json_response;
+        $status = $this->process->status->value;
 
-        return [
+        $message = match ($status) {
+            'completed', 'failed' => $jsonResponse['output']['message']
+                ?? $jsonResponse['message']
+                ?? $jsonResponse['error']
+                ?? null,
+            default => null,
+        };
+
+
+        $payload = [
             'id' => $this->process->id,
-            'status' => $this->process->status->value,
+            'status' => $status,
             'output_url' => $outputFile?->url,
-            'error' => $this->process->status->value === 'failed'
-                ? ($this->process->json_response['error'] ?? 'An error occurred.')
-                : null,
+            'error' => $status === 'failed' ? ($message ?? 'An error occurred.') : null,
+            'message' => $message,
+            'debug_payload' => config('app.debug') ? $jsonResponse : null,
         ];
+
+        Log::debug('Broadcast TTSProcessUpdated', $payload);
+
+        return $payload;
     }
 }

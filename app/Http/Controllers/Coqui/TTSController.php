@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Coqui;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SubmitTTSJob;
+use App\Jobs\SubmitTTSJobLocal;
 use App\Models\TTSProcess;
 use App\Services\RunPodHealthService;
 use Illuminate\Http\Request;
@@ -21,10 +22,16 @@ class TTSController extends Controller
         $health = app(RunPodHealthService::class)
             ->getEndpointHealth(config('coqui.runpod.tts_endpoint_id'));
 
+        $initialProcessStatus = null;
+        if ($processId = session('process_id')) {
+            $initialProcessStatus = TTSProcess::find($processId)?->status?->value;
+        }
+
         return Inertia::render('coqui/tts', [
             'languages' => $languages,
             'models' => $models,
             'runpod_health' => $health,
+            'initial_process_status' => $initialProcessStatus,
         ]);
     }
 
@@ -50,7 +57,11 @@ class TTSController extends Controller
             'text_to_speech' => $request->text,
         ]);
 
-        SubmitTTSJob::dispatch($process);
+        if (config('coqui.local_worker.enabled')) {
+            SubmitTTSJobLocal::dispatch($process);
+        } else {
+            SubmitTTSJob::dispatch($process);
+        }
 
         return redirect()->route('coqui.tts')
             ->with('process_id', $process->id);

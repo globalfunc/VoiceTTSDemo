@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class TTSProcess extends Model
 {
+    protected $table = 'tts_processes';
+
     protected $fillable = [
         'user_id',
         'model',

@@ -41,6 +41,8 @@ export interface ProcessBroadcastPayload {
     status: ProcessStatus;
     output_url: string | null;
     error: string | null;
+    message: string | null;
+    debug_payload: Record<string, unknown> | null;
 }
 
 export interface RunPodHealth {

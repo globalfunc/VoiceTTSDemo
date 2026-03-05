@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Coqui;
 use App\Enums\StoredFileType;
 use App\Http\Controllers\Controller;
 use App\Jobs\SubmitVoiceCloneJob;
+use App\Jobs\SubmitVoiceCloneJobLocal;
 use App\Models\VoiceCloneProcess;
 use App\Services\RunPodHealthService;
 use App\Services\UploadFilesService;
@@ -29,11 +30,17 @@ class VoiceCloneController extends Controller
             ->filter()
             ->all();
 
+        $initialProcessStatus = null;
+        if ($processId = session('process_id')) {
+            $initialProcessStatus = VoiceCloneProcess::find($processId)?->status?->value;
+        }
+
         return Inertia::render('coqui/voice-clone', [
             'vc_models' => $vcModels,
             'vc_languages' => $vcLanguages,
             'runpod_health' => $health,
             'upload_limits' => config('coqui.upload_file.validations'),
+            'initial_process_status' => $initialProcessStatus,
         ]);
     }
 
@@ -86,7 +93,11 @@ class VoiceCloneController extends Controller
             }
         }
 
-        SubmitVoiceCloneJob::dispatch($process);
+        if (config('coqui.local_worker.enabled')) {
+            SubmitVoiceCloneJobLocal::dispatch($process);
+        } else {
+            SubmitVoiceCloneJob::dispatch($process);
+        }
 
         return redirect()->route('coqui.voice-clone')
             ->with('process_id', $process->id);

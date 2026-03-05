@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { ColdStartNotice } from '@/components/cold-start-notice';
 import { ProcessStatusCard } from '@/components/process-status-card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import coqui from '@/routes/coqui';
 import type { BreadcrumbItem } from '@/types';
-import type { RunPodHealth } from '@/types/process';
+import type { ProcessStatus, RunPodHealth } from '@/types/process';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Coqui', href: '/coqui' },
@@ -25,16 +25,18 @@ interface Props {
     languages: Record<string, string>;
     models: Record<string, { tts: string[] }>;
     runpod_health: RunPodHealth;
+    initial_process_status?: ProcessStatus | null;
 }
 
-export default function TTSPage({ languages, models, runpod_health }: Props) {
-    const { props } = usePage<{ flash?: { process_id?: number } }>();
+export default function TTSPage({ languages, models, runpod_health, initial_process_status }: Props) {
+    const { props } = usePage<{ flash?: { process_id?: number }; debug?: boolean }>();
     const processId = props.flash?.process_id ?? null;
+    const debugMode = props.debug ?? false;
 
     const [selectedLanguage, setSelectedLanguage] = useState('');
     const availableModels = selectedLanguage ? (models[selectedLanguage]?.tts ?? []) : [];
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         language: '',
         model: '',
         text: '',
@@ -55,9 +57,9 @@ export default function TTSPage({ languages, models, runpod_health }: Props) {
         setData({ ...data, language: value, model: '' });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(coqui.tts.post.url(), { preserveScroll: true });
+        post(coqui.tts.store.url(), { preserveScroll: true });
     };
 
     const isColdStart =
@@ -154,8 +156,9 @@ export default function TTSPage({ languages, models, runpod_health }: Props) {
                     <ProcessStatusCard
                         processId={processId}
                         processType="tts"
-                        initialStatus="pending"
+                        initialStatus={initial_process_status ?? 'pending'}
                         runpodHealth={runpod_health}
+                        debugMode={debugMode}
                     />
                 )}
             </div>

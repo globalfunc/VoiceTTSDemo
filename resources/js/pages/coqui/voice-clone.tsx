@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import coqui from '@/routes/coqui';
 import type { BreadcrumbItem } from '@/types';
-import type { RunPodHealth } from '@/types/process';
+import type { ProcessStatus, RunPodHealth } from '@/types/process';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Coqui', href: '/coqui' },
@@ -37,11 +37,13 @@ interface Props {
         max_duration_seconds: number;
         max_files: number;
     };
+    initial_process_status?: ProcessStatus | null;
 }
 
-export default function VoiceClonePage({ vc_models, vc_languages, runpod_health, upload_limits }: Props) {
-    const { props } = usePage<{ flash?: { process_id?: number } }>();
+export default function VoiceClonePage({ vc_models, vc_languages, runpod_health, upload_limits, initial_process_status }: Props) {
+    const { props } = usePage<{ flash?: { process_id?: number }; debug?: boolean }>();
     const processId = props.flash?.process_id ?? null;
+    const debugMode = props.debug ?? false;
 
     const [selectedLanguage, setSelectedLanguage] = useState('');
     const [wavFiles, setWavFiles] = useState<File[]>([]);
@@ -81,9 +83,9 @@ export default function VoiceClonePage({ vc_models, vc_languages, runpod_health,
         setData('files', files);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(coqui.voiceClone.post.url(), {
+        post(coqui.voiceClone.store.url(), {
             forceFormData: true,
             preserveScroll: true,
         });
@@ -205,8 +207,9 @@ export default function VoiceClonePage({ vc_models, vc_languages, runpod_health,
                     <ProcessStatusCard
                         processId={processId}
                         processType="vc"
-                        initialStatus="pending"
+                        initialStatus={initial_process_status ?? 'pending'}
                         runpodHealth={runpod_health}
+                        debugMode={debugMode}
                     />
                 )}
             </div>
