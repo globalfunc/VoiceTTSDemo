@@ -36,7 +36,12 @@ class CoquiTTSService
             $payload['webhook'] = $webhookUrl;
         }
 
+        $url = "{$this->baseUrl}/{$this->endpointId}/run";
+        \Log::debug('RunPod TTS submit', ['url' => $url, 'payload' => json_encode($payload, JSON_PRETTY_PRINT)]);
+
         $response = $this->request('post', "/run", $payload);
+
+        \Log::debug('RunPod TTS response', ['status' => $response->status(), 'body' => $response->body()]);
 
         return $response->json('id');
     }

@@ -9,6 +9,7 @@ import { initializeTheme } from '@/hooks/use-appearance';
 
 // Initialize Laravel Echo with Reverb
 window.Pusher = Pusher;
+Pusher.logToConsole = true;
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY,
