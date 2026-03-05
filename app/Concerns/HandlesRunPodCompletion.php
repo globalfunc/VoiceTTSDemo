@@ -12,10 +12,20 @@ trait HandlesRunPodCompletion
 {
     /**
      * Mark a process as completed, create output StoredFile, broadcast update.
+     * If the RunPod job completed but the worker returned an error (no URL / non-200 status),
+     * route to handleFailure instead.
      */
     protected function handleCompletion(TTSProcess|VoiceCloneProcess $process, array $output): void
     {
-        $outputUrl = $output['output']['url'] ?? null;
+        $workerOutput = $output['output'] ?? [];
+        $outputUrl = $workerOutput['url'] ?? null;
+        $workerStatus = $workerOutput['status'] ?? 200;
+
+        // RunPod said COMPLETED but the worker returned an error HTTP status
+        if ($workerStatus >= 400 || $outputUrl === null) {
+            $this->handleFailure($process, $output);
+            return;
+        }
 
         $process->update([
             'status' => ProcessStatus::COMPLETED,
@@ -23,26 +33,24 @@ trait HandlesRunPodCompletion
             'completed_at' => now(),
         ]);
 
-        if ($outputUrl) {
-            // Parse the S3 path from the URL to store just the key
-            $storagePath = $this->extractStoragePath($outputUrl);
+        // Parse the S3 path from the URL to store just the key
+        $storagePath = $this->extractStoragePath($outputUrl);
 
-            $storedFile = new StoredFile([
-                'storage_disk' => 's3',
-                'storage_path' => $storagePath,
-                'name' => basename($storagePath),
-                'type' => StoredFileType::OUTPUT,
-            ]);
+        $storedFile = new StoredFile([
+            'storage_disk' => 's3',
+            'storage_path' => $storagePath,
+            'name' => basename($storagePath),
+            'type' => StoredFileType::OUTPUT,
+        ]);
 
-            $process->storedFiles()->save($storedFile);
-        }
+        $process->storedFiles()->save($storedFile);
 
         $process->refresh();
         $this->broadcastUpdate($process);
     }
 
     /**
-     * Mark a process as failed with the error response.
+     * Mark a process as failed with the full API response payload.
      */
     protected function handleFailure(TTSProcess|VoiceCloneProcess $process, array $response): void
     {
@@ -66,6 +74,20 @@ trait HandlesRunPodCompletion
         ]);
 
         $this->broadcastUpdate($process);
+    }
+
+    /**
+     * Extract the user-friendly message from any response shape:
+     * - RunPod-wrapped:  $payload['output']['message']
+     * - Direct/local:    $payload['message']
+     * - Legacy local:    $payload['error']
+     */
+    protected function extractMessage(array $payload): string
+    {
+        return $payload['output']['message']
+            ?? $payload['message']
+            ?? $payload['error']
+            ?? 'An error occurred.';
     }
 
     private function extractStoragePath(string $url): string
