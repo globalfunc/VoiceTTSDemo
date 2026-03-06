@@ -1,7 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Library, Mic, Mic2 } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Library, Mic, Mic2, Sparkles, WandSparkles } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
+import { NavGroup } from '@/components/nav-group';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import coqui from '@/routes/coqui';
+import zonos from '@/routes/zonos';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -28,8 +30,11 @@ const mainNavItems: NavItem[] = [
         href: '/library',
         icon: Library,
     },
+];
+
+const coquiNavItems: NavItem[] = [
     {
-        title: 'Coqui TTS',
+        title: 'TTS',
         href: coqui.tts.url(),
         icon: Mic,
     },
@@ -37,6 +42,24 @@ const mainNavItems: NavItem[] = [
         title: 'Voice Clone',
         href: coqui.voiceClone.url(),
         icon: Mic2,
+    },
+];
+
+const zonosNavItems: NavItem[] = [
+    {
+        title: 'TTS',
+        href: zonos.tts.url(),
+        icon: Mic,
+    },
+    {
+        title: 'Voice Clone',
+        href: zonos.voiceClone.url(),
+        icon: Mic2,
+    },
+    {
+        title: 'Voice Creation',
+        href: zonos.voiceCreation.url(),
+        icon: WandSparkles,
     },
 ];
 
@@ -70,6 +93,8 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                <NavGroup label="Coqui" icon={Mic} items={coquiNavItems} />
+                <NavGroup label="Zonos" icon={Sparkles} items={zonosNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

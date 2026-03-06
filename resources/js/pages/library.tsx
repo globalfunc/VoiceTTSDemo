@@ -12,7 +12,7 @@ import type { ProcessStatus, StoredFile, TTSProcess, VoiceCloneProcess } from '@
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Library', href: '/library' }];
 
 type LibraryItem = (TTSProcess | VoiceCloneProcess) & {
-    process_type: 'tts' | 'vc';
+    process_type: 'tts' | 'vc' | 'zonos-tts';
     stored_files: StoredFile[];
 };
 
@@ -84,8 +84,9 @@ export default function LibraryPage({ items, pagination, filters }: Props) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All types</SelectItem>
-                            <SelectItem value="tts">TTS</SelectItem>
-                            <SelectItem value="vc">Voice Clone</SelectItem>
+                            <SelectItem value="tts">Coqui TTS</SelectItem>
+                            <SelectItem value="vc">Coqui Voice Clone</SelectItem>
+                            <SelectItem value="zonos-tts">Zonos TTS</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -138,10 +139,10 @@ export default function LibraryPage({ items, pagination, filters }: Props) {
                                                         {item.model.split('/').pop()}
                                                     </span>
                                                     <Badge variant="outline" className="text-xs uppercase">
-                                                        {item.process_type === 'tts' ? 'TTS' : 'Voice Clone'}
+                                                        {item.process_type === 'tts' ? 'TTS' : item.process_type === 'vc' ? 'Voice Clone' : 'TTS'}
                                                     </Badge>
                                                     <Badge variant="outline" className="text-xs uppercase">
-                                                        Coqui
+                                                        {item.process_type === 'zonos-tts' ? 'Zonos' : 'Coqui'}
                                                     </Badge>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">

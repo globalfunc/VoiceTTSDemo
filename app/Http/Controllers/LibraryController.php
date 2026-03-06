@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TTSProcess;
 use App\Models\VoiceCloneProcess;
+use App\Models\ZonosTTSProcess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -24,9 +25,13 @@ class LibraryController extends Controller
         $vcQuery = VoiceCloneProcess::where('user_id', $userId)
             ->with(['storedFiles' => fn ($q) => $q->where('type', 'output')]);
 
+        $zonosTtsQuery = ZonosTTSProcess::where('user_id', $userId)
+            ->with(['storedFiles' => fn ($q) => $q->where('type', 'output')]);
+
         if ($status) {
             $ttsQuery->where('status', $status);
             $vcQuery->where('status', $status);
+            $zonosTtsQuery->where('status', $status);
         }
 
         // Combine and sort by created_at desc, then paginate
@@ -41,6 +46,12 @@ class LibraryController extends Controller
         if (! $type || $type === 'vc') {
             $items = $items->concat(
                 $vcQuery->get()->map(fn ($p) => array_merge($p->toArray(), ['process_type' => 'vc']))
+            );
+        }
+
+        if (! $type || $type === 'zonos-tts') {
+            $items = $items->concat(
+                $zonosTtsQuery->get()->map(fn ($p) => array_merge($p->toArray(), ['process_type' => 'zonos-tts']))
             );
         }
 

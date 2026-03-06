@@ -7,6 +7,8 @@ use App\Events\TTSProcessUpdated;
 use App\Events\VoiceCloneProcessUpdated;
 use App\Models\TTSProcess;
 use App\Models\VoiceCloneProcess;
+use App\Models\ZonosTTSProcess;
+use App\Models\ZonosVoice;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,7 +29,21 @@ class RunPodWebhookController extends Controller
             return response()->json(['error' => 'Missing job id'], 400);
         }
 
-        // Find the process by runpod_job_id across both tables
+        // Check Zonos tables first (separate completion logic handles base64 audio)
+        $zonosProcess = ZonosTTSProcess::where('runpod_job_id', $runpodJobId)->first()
+            ?? ZonosVoice::where('runpod_job_id', $runpodJobId)->first();
+
+        if ($zonosProcess) {
+            $handler = app(ZonosWebhookHandler::class);
+            if ($status === 'COMPLETED') {
+                $handler->handleCompleted($zonosProcess, $request->all());
+            } else {
+                $handler->handleFailed($zonosProcess, $request->all());
+            }
+            return response()->json(['ok' => true]);
+        }
+
+        // Find the Coqui process by runpod_job_id
         $process = TTSProcess::where('runpod_job_id', $runpodJobId)->first()
             ?? VoiceCloneProcess::where('runpod_job_id', $runpodJobId)->first();
 

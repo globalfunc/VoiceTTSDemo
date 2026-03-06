@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { useProcessStatus } from '@/hooks/use-process-status';
+import type { ProcessType } from '@/hooks/use-process-status';
 import type { ProcessStatus, RunPodHealth } from '@/types/process';
 import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
 interface ProcessStatusCardProps {
     processId: number;
-    processType: 'tts' | 'vc';
+    processType: ProcessType;
     initialStatus?: ProcessStatus;
     runpodHealth?: RunPodHealth;
     debugMode?: boolean;

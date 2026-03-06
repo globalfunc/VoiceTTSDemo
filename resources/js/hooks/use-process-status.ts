@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ProcessBroadcastPayload, ProcessStatus } from '@/types/process';
 
-type ProcessType = 'tts' | 'vc';
+export type ProcessType = 'tts' | 'vc' | 'zonos-tts' | 'zonos-voice';
 
 interface ProcessStatusState {
     status: ProcessStatus;
@@ -14,6 +14,15 @@ interface ProcessStatusState {
 const CHANNEL_MAP: Record<ProcessType, string> = {
     tts: 'tts-process',
     vc: 'voice-clone-process',
+    'zonos-tts': 'zonos-tts',
+    'zonos-voice': 'zonos-voice',
+};
+
+const EVENT_MAP: Record<ProcessType, string> = {
+    tts: '.TTSProcessUpdated',
+    vc: '.VoiceCloneProcessUpdated',
+    'zonos-tts': '.ZonosTTSProcessUpdated',
+    'zonos-voice': '.ZonosVoiceProcessUpdated',
 };
 
 export function useProcessStatus(
@@ -37,8 +46,8 @@ export function useProcessStatus(
 
         const channelName = `${CHANNEL_MAP[processType]}.${processId}`;
         console.debug('Listen on private channel', channelName);
-        const channel = window.Echo.private(channelName).listen(
-            processType === 'tts' ? '.TTSProcessUpdated' : '.VoiceCloneProcessUpdated',
+        window.Echo.private(channelName).listen(
+            EVENT_MAP[processType],
             (payload: ProcessBroadcastPayload) => {
                 setState({
                     status: payload.status,
