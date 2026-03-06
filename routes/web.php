@@ -5,6 +5,10 @@ use App\Http\Controllers\Coqui\TTSController;
 use App\Http\Controllers\Coqui\VoiceCloneController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\RunPodWebhookController;
+use App\Http\Controllers\Zonos\DashboardController as ZonosDashboardController;
+use App\Http\Controllers\Zonos\TTSController as ZonosTTSController;
+use App\Http\Controllers\Zonos\VoiceCreationController as ZonosVoiceCreationController;
+use App\Http\Controllers\Zonos\VoiceCloneController as ZonosVoiceCloneController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -25,6 +29,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/tts', [TTSController::class, 'store'])->name('tts.store');
         Route::get('/voice-clone', [VoiceCloneController::class, 'index'])->name('voice-clone');
         Route::post('/voice-clone', [VoiceCloneController::class, 'store'])->name('voice-clone.store');
+    });
+
+    // Zonos TTS, Voice Creation & Voice Clone
+    Route::prefix('zonos')->name('zonos.')->group(function () {
+        Route::get('/', [ZonosDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/tts', [ZonosTTSController::class, 'index'])->name('tts');
+        Route::post('/tts', [ZonosTTSController::class, 'store'])->name('tts.store');
+        Route::get('/voice-creation', [ZonosVoiceCreationController::class, 'index'])->name('voice-creation');
+        Route::post('/voice-creation', [ZonosVoiceCreationController::class, 'store'])->name('voice-creation.store');
+        Route::get('/voice-clone', [ZonosVoiceCloneController::class, 'index'])->name('voice-clone');
+        Route::post('/voice-clone', [ZonosVoiceCloneController::class, 'store'])->name('voice-clone.store');
     });
 });
 
