@@ -1,0 +1,51 @@
+# Git
+.git
+.gitattributes
+.gitignore
+
+# Dependencies (rebuilt inside Docker)
+node_modules
+vendor
+
+# Environment — never bake secrets into the image
+.env
+.env.*
+!.env.example
+
+# Laravel runtime storage (S3 in production, ephemeral in containers)
+storage/app
+storage/logs
+
+# Build artifacts (rebuilt inside Docker)
+public/build
+public/hot
+public/storage
+bootstrap/ssr
+
+# Tests (not needed at runtime)
+tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
+
+# Docker files (avoid recursive context)
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# Documentation
+*.md
+LICENSE
+
+# IDE / OS
+.idea
+.vscode
+.fleet
+.nova
+.zed
+.DS_Store
+*.swp
+*.swo
+
+# CI
+.github

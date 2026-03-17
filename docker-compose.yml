@@ -1,0 +1,112 @@
+services:
+  app:
+    image: voicetts-app:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"      # HTTP
+      - "8080:8080"    # Reverb WebSockets
+    environment:
+      APP_NAME: VoiceTTS
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: "${APP_KEY}"
+      APP_URL: "http://localhost:8000"
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: voicetts
+      DB_USERNAME: voicetts
+      DB_PASSWORD: "${DB_PASSWORD:-voicetts}"
+
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      BROADCAST_CONNECTION: reverb
+      FILESYSTEM_DISK: s3
+
+      AWS_ENDPOINT: "http://minio:9000"
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_DEFAULT_REGION: auto
+      AWS_BUCKET: voicetts
+      AWS_URL: "http://localhost:9000/voicetts"
+      AWS_USE_PATH_STYLE_ENDPOINT: "true"
+
+      REVERB_APP_ID: voicetts
+      REVERB_APP_KEY: voicetts-key
+      REVERB_APP_SECRET: voicetts-secret
+      REVERB_HOST: "localhost"
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
+      REVERB_SERVER_HOST: "0.0.0.0"
+      REVERB_SERVER_PORT: 8080
+
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: warning
+
+      RUNPOD_API_KEY: "${RUNPOD_API_KEY:-}"
+      RUNPOD_TTS_ENDPOINT_ID: "${RUNPOD_TTS_ENDPOINT_ID:-}"
+      RUNPOD_VC_ENDPOINT_ID: "${RUNPOD_VC_ENDPOINT_ID:-}"
+      RUNPOD_WEBHOOK_URL: "${RUNPOD_WEBHOOK_URL:-}"
+      RUNPOD_TTS_TIMEOUT: "${RUNPOD_TTS_TIMEOUT:-180}"
+      RUNPOD_VC_TIMEOUT: "${RUNPOD_VC_TIMEOUT:-600}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: voicetts
+      POSTGRES_USER: voicetts
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-voicetts}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voicetts -d voicetts"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"    # S3 API
+      - "9001:9001"    # MinIO web console
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # One-shot: creates the voicetts bucket on first run
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minioadmin &&
+        mc mb --ignore-existing local/voicetts &&
+        mc anonymous set download local/voicetts
+      "
+    restart: "no"
+
+volumes:
+  postgres-data:
+  minio-data:
