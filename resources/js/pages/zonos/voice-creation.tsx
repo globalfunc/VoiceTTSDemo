@@ -3,6 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { ColdStartNotice } from '@/components/cold-start-notice';
 import InputError from '@/components/input-error';
+import { MicRecorderDialog } from '@/components/mic-recorder-dialog';
 import { ProcessStatusCard } from '@/components/process-status-card';
 import { WavFileUploader } from '@/components/wav-file-uploader';
 import { Button } from '@/components/ui/button';
@@ -108,6 +109,14 @@ export default function ZonosVoiceCreationPage({ runpod_health, upload_limits, i
                                     maxSizeKb={upload_limits.max_size_kb}
                                     disabled={processing}
                                 />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">or</span>
+                                    <MicRecorderDialog
+                                        onRecorded={(file) => handleFileChange([file])}
+                                        disabled={processing}
+                                        maxSeconds={20}
+                                    />
+                                </div>
                                 <InputError message={errors.file} />
                             </div>
 
