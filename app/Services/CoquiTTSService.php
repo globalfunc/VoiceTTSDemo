@@ -26,9 +26,9 @@ class CoquiTTSService
     {
         $payload = [
             'input' => [
+                'type' => 'tts',
                 'modelName' => $process->model,
                 'text' => $process->text_to_speech,
-                'outputFormat' => 'wav',
             ],
         ];
 

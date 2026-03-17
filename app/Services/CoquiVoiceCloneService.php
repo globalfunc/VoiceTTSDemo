@@ -33,6 +33,7 @@ class CoquiVoiceCloneService
 
         $payload = [
             'input' => [
+                'type' => 'vc',
                 'modelName' => $process->model,
                 'text' => $process->text_to_speech,
                 'language' => $process->language,
