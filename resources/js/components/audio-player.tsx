@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWavesurfer } from '@wavesurfer/react';
 import { Download, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ interface AudioPlayerProps {
 
 export function AudioPlayer({ url, fileName = 'output.wav' }: AudioPlayerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isReady, setIsReady] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
-    const { wavesurfer, isPlaying, isReady } = useWavesurfer({
+    const { wavesurfer, isPlaying } = useWavesurfer({
         container: containerRef,
         url,
         waveColor: 'rgb(99, 102, 241)',
@@ -22,6 +24,33 @@ export function AudioPlayer({ url, fileName = 'output.wav' }: AudioPlayerProps) 
         barRadius: 2,
         normalize: true,
     });
+
+    useEffect(() => {
+        if (!wavesurfer) {
+            setIsReady(false);
+            return;
+        }
+
+        // Guard against the race condition where `ready` fires before
+        // the hook's listener effect attaches (can happen with cached/CDN audio).
+        if (wavesurfer.getDuration() > 0) {
+            setIsReady(true);
+            return;
+        }
+
+        setIsReady(false);
+
+        const unsubReady = wavesurfer.on('ready', () => { setIsReady(true); setLoadError(null); });
+        const unsubError = wavesurfer.on('error', (err: Error) => {
+            setIsReady(false);
+            setLoadError(err?.message ?? 'Failed to load audio.');
+        });
+
+        return () => {
+            unsubReady();
+            unsubError();
+        };
+    }, [wavesurfer]);
 
     const togglePlay = () => {
         wavesurfer?.playPause();
@@ -48,6 +77,9 @@ export function AudioPlayer({ url, fileName = 'output.wav' }: AudioPlayerProps) 
                     </a>
                 </Button>
             </div>
+            {loadError && (
+                <p className="text-xs text-destructive">{loadError}</p>
+            )}
         </div>
     );
 }
