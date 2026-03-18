@@ -37,6 +37,7 @@ env:
     APP_ENV: production
     APP_DEBUG: "false"
     APP_URL: https://voicetts.mvpvibes.eu
+    ASSET_URL: https://voicetts.mvpvibes.eu
     DB_CONNECTION: pgsql
     DB_HOST: host.docker.internal
     DB_PORT: "5432"
