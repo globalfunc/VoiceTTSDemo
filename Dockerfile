@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2-dev \
     libcurl4-openssl-dev \
     libexif-dev \
+    libavif-dev \
+    libxpm-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Node.js 22 via NodeSource ----
@@ -115,6 +117,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libjpeg62-turbo \
     libwebp7 \
     libfreetype6 \
+    libxpm4 \
+    libavif15 \
     libicu72 \
     libxml2 \
     libcurl4 \
