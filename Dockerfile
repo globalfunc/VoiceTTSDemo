@@ -101,7 +101,7 @@ RUN npm run build
 # =============================================================
 FROM php:8.2-fpm-bookworm AS final
 
-LABEL org.opencontainers.image.source="https://github.com/OWNER/REPO"
+LABEL org.opencontainers.image.source="https://github.com/globalfunc/VoiceTTSDemo"
 LABEL org.opencontainers.image.description="VoiceTTS Laravel application"
 
 # ---- Runtime system dependencies ----
