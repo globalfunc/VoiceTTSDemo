@@ -1,4 +1,5 @@
 /.phpunit.cache
+/.kamal/secrets
 /bootstrap/ssr
 /node_modules
 /public/build
